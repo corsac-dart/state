@@ -6,12 +6,13 @@ import 'package:corsac_state/corsac_state.dart';
 void main() {
   group('State:', () {
     test('it can take a snapshot of simple object', () {
-      var user = new User(3, 'Burt Macklin', new DateTime.now());
+      var date = new DateTime.now();
+      var user = new User(3, 'Burt Macklin', date);
       var snapshot = State.snapshot(user);
       expect(snapshot, isMap);
       expect(snapshot['id'], 3);
       expect(snapshot['name'], 'Burt Macklin');
-      expect(snapshot['createdAt'], new isInstanceOf<DateTime>());
+      expect(snapshot['createdAt'], date.toIso8601String());
     });
 
     test('it excludes private fields', () {
@@ -56,19 +57,19 @@ void main() {
       expect(snapshot, contains('vip'));
     });
 
-    test('it leaves scalar objects as is when taking snapshot', () {
+    test('it converts scalar objects when taking snapshot', () {
       var email = new Email('foo@bar.com');
       var user = new User(3, 'Burt Macklin', new DateTime.now())..email = email;
       var snapshot = State.snapshot(user);
       expect(snapshot, contains('email'));
-      expect(snapshot['email'], email);
+      expect(snapshot['email'], 'foo@bar.com');
     });
 
-    test('it leaves Uri objects as is when taking snapshot', () {
+    test('it converts Uri objects when taking snapshot', () {
       var user = new User(3, 'Burt Macklin', new DateTime.now());
       var snapshot = State.snapshot(user);
       expect(snapshot, contains('website'));
-      expect(snapshot['website'], new isInstanceOf<Uri>());
+      expect(snapshot['website'], 'http://user.com');
     });
 
     test('it passes through null values', () {
@@ -85,11 +86,18 @@ void main() {
       expect(restoredUser.createdAt, isNull);
     });
 
+    test('it allows custom format on DateTime objects', () {
+      var user = new User(3, 'Burt Macklin', new DateTime(2012, 10, 9));
+      var snapshot =
+          State.snapshot(user, format: const StateFormat('yyyy-MM-dd'));
+      expect(snapshot['createdAt'], '2012-10-09');
+    });
+
     test('it restores object from a snapshot', () {
       var snapshot = {
         "id": 3,
         "name": "Burt Macklin",
-        "createdAt": new DateTime.now()
+        "createdAt": new DateTime.now().toIso8601String()
       };
       User user = State.restore(User, snapshot);
       expect(user.id, 3);
@@ -124,8 +132,8 @@ class User {
 
 @ScalarObject()
 class Email {
-  final String email;
-  Email(this.email);
+  final String value;
+  Email(this.value);
 
-  toJson() => email;
+  toJson() => value;
 }
