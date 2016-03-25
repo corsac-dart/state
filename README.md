@@ -20,7 +20,7 @@ formatted).
 ### 1.1 Creating state snapshots
 
 ```dart
-Map<String, dynamic> snapshot(object, {view, StateFormatter formatter});
+Map<String, dynamic> snapshot(object, {view, StateFormat format});
 ```
 
 There are two main rules for how Snapshots are composed.
@@ -73,8 +73,6 @@ restoring original objects:
   this is not necessarily a bad thing (we'll cover this in detail later).
 * Generated snapshot must have all values required by original object's
   constructor, otherwise instantiation will fail.
-* If snapshot was created with `StateFormatter` it can not be used to restore
-  original object due to changes made by the formatter.
 
 Basically, when restoring, default constructor of original object serves two
 purposes. First, obviously, it allows to create a new instance. But most
